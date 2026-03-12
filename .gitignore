@@ -41,3 +41,9 @@ app-example
 # generated native folders
 /ios
 /android
+
+# macOS
+.DS_Store
+
+# indexes (fichiers de travail)
+indexes/

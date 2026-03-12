@@ -1,4 +1,30 @@
-import { Tabs } from 'expo-router';
+import { Tabs } from "expo-router";
+
+export default function TabLayout() {
+  return (
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: "#ffffff",
+          height: 60
+        },
+        tabBarActiveTintColor: "#4A6FA5",
+        tabBarInactiveTintColor: "#999"
+      }}
+    >
+      <Tabs.Screen name="index" options={{ href: null }} />
+      <Tabs.Screen name="camera" options={{ title: "Caméra" }} />
+      <Tabs.Screen name="map" options={{ title: "Carte" }} />
+      <Tabs.Screen name="calendar" options={{ title: "Calendrier" }} />
+      <Tabs.Screen name="photos" options={{ title: "Photos" }} />
+      <Tabs.Screen name="profile" options={{ title: "Profil" }} />
+    </Tabs>
+  );
+}
+
+
+/* import { Tabs } from 'expo-router';
 import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
@@ -32,4 +58,4 @@ export default function TabLayout() {
       />
     </Tabs>
   );
-}
+} */
