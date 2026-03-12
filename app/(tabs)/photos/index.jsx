@@ -1,258 +1,136 @@
-import { useState } from "react";
-import { FlatList, Image, Text, TextInput, View } from "react-native";
-
-export default function App() {
-
-  const photos = [
-    { id:"1", city:"Paris", date:"2026-03-12", distance:5, uri:"https://picsum.photos/200"},
-    { id:"2", city:"Lyon", date:"2026-03-10", distance:30, uri:"https://picsum.photos/201"},
-    { id:"3", city:"Marseille", date:"2026-03-08", distance:15, uri:"https://picsum.photos/202"},
-    { id:"4", city:"Nice", date:"2026-03-07", distance:60, uri:"https://picsum.photos/203"},
-    { id:"5", city:"Bordeaux", date:"2026-03-05", distance:80, uri:"https://picsum.photos/204"},
-  ];
-
-  const [search,setSearch] = useState("");
-  const [dateMin,setDateMin] = useState("");
-  const [dateMax,setDateMax] = useState("");
-  const [maxDistance,setMaxDistance] = useState("");
-
-  function normalizeDateMax(input){
-
-    if(!input) return null;
-
-    if(input.length === 4){
-      return new Date(`${input}-12-31`);
-    }
-
-    if(input.length === 7){
-      return new Date(`${input}-31`);
-    }
-
-    return new Date(input);
-  }
-
-  const maxDate = normalizeDateMax(dateMax);
-
-  const sortedPhotos = [...photos].sort(
-    (a,b)=> new Date(b.date) - new Date(a.date)
-  );
-
-  const filteredPhotos = sortedPhotos.filter(photo => {
-
-    const keywordMatch =
-      photo.city.toLowerCase().includes(search.toLowerCase());
-
-    const dateMinMatch =
-      dateMin === "" || new Date(photo.date) >= new Date(dateMin);
-
-    const dateMaxMatch =
-      !maxDate || new Date(photo.date) <= maxDate;
-
-    const distanceLimit =
-      maxDistance === "" ? Infinity : Number(maxDistance);
-
-    const distanceMatch =
-      photo.distance <= distanceLimit;
-
-    return keywordMatch && dateMinMatch && dateMaxMatch && distanceMatch;
-  });
-
-  return (
-    <View style={{padding:20}}>
-
-      <TextInput
-        placeholder="🔍 search city"
-        value={search}
-        onChangeText={setSearch}
-        style={{borderWidth:1,padding:8,marginBottom:10}}
-      />
-
-      <TextInput
-        placeholder="date min (YYYY-MM-DD)"
-        value={dateMin}
-        onChangeText={setDateMin}
-        style={{borderWidth:1,padding:8,marginBottom:10}}
-      />
-
-      <TextInput
-        placeholder="date max (YYYY-MM-DD)"
-        value={dateMax}
-        onChangeText={setDateMax}
-        style={{borderWidth:1,padding:8,marginBottom:10}}
-      />
-
-      <TextInput
-        placeholder="distance max (km)"
-        value={maxDistance}
-        onChangeText={setMaxDistance}
-        keyboardType="numeric"
-        style={{borderWidth:1,padding:8,marginBottom:10}}
-      />
-
-      <FlatList
-        data={filteredPhotos}
-        keyExtractor={(item)=>item.id}
-        renderItem={({item})=>(
-          <View style={{flexDirection:"row",padding:10,borderBottomWidth:1}}>
-            <Image
-              source={{uri:item.uri}}
-              style={{width:70,height:70,marginRight:10}}
-            />
-
-            <View>
-              <Text>📍 {item.city}</Text>
-              <Text>📅 {item.date}</Text>
-              <Text>📏 {item.distance} km</Text>
-            </View>
-          </View>
-        )}
-      />
-
-    </View>
-  );
-}
-
-/*
-photosService.js
-
-export async function getPhotos() {
-
-  const photos = [
-    { id:"1", city:"Paris", date:"2026-03-12", distance:5, uri:"https://picsum.photos/200"},
-    { id:"2", city:"Lyon", date:"2026-03-10", distance:30, uri:"https://picsum.photos/201"},
-    { id:"3", city:"Marseille", date:"2026-03-08", distance:15, uri:"https://picsum.photos/202"},
-    { id:"4", city:"Nice", date:"2026-03-07", distance:60, uri:"https://picsum.photos/203"},
-    { id:"5", city:"Bordeaux", date:"2026-03-05", distance:80, uri:"https://picsum.photos/204"},
-  ];
-
-  // simulation appel API
-  return new Promise((resolve)=>{
-    setTimeout(()=>{
-      resolve(photos);
-    },300);
-  });
-
-}
-
-*/
-
-/* 
-
-APP
 import { useEffect, useState } from "react";
-import { FlatList, Image, Text, TextInput, View } from "react-native";
-import { getPhotos } from "./services/photosService";
+import {
+  Button,
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { deletePhoto, getAllPhotos } from "../../../services/photoservices";
 
-export default function App() {
+export default function PhotosScreen() {
+  const [photos, setPhotos] = useState([]);
+  const [searchDate, setSearchDate] = useState("");
 
-  const [photos,setPhotos] = useState([]);
-
-  const [search,setSearch] = useState("");
-  const [dateMin,setDateMin] = useState("");
-  const [dateMax,setDateMax] = useState("");
-  const [maxDistance,setMaxDistance] = useState("");
-
-  useEffect(()=>{
+  useEffect(() => {
     loadPhotos();
-  },[]);
+  }, []);
 
-  async function loadPhotos(){
-    const data = await getPhotos();
-    setPhotos(data);
-  }
-
-  function normalizeDateMax(input){
-
-    if(!input) return null;
-
-    if(input.length === 4){
-      return new Date(`${input}-12-31`);
+  const loadPhotos = async () => {
+    try {
+      const storedPhotos = await getAllPhotos();
+      setPhotos(storedPhotos);
+    } catch (error) {
+      console.log("Erreur chargement photos :", error);
     }
+  };
 
-    if(input.length === 7){
-      return new Date(`${input}-31`);
+  const handleDeletePhoto = async (uri) => {
+    try {
+      await deletePhoto(uri);
+      await loadPhotos();
+    } catch (error) {
+      console.log("Erreur suppression photo :", error);
     }
-
-    return new Date(input);
-  }
-
-  const maxDate = normalizeDateMax(dateMax);
+  };
 
   const sortedPhotos = [...photos].sort(
-    (a,b)=> new Date(b.date) - new Date(a.date)
+    (a, b) => new Date(b.date) - new Date(a.date)
   );
 
-  const filteredPhotos = sortedPhotos.filter(photo => {
+  const filteredPhotos = sortedPhotos.filter((photo) => {
+    const dateMatch =
+      searchDate === "" || photo.date?.slice(0, 10).includes(searchDate);
 
-    const keywordMatch =
-      photo.city.toLowerCase().includes(search.toLowerCase());
-
-    const dateMinMatch =
-      dateMin === "" || new Date(photo.date) >= new Date(dateMin);
-
-    const dateMaxMatch =
-      !maxDate || new Date(photo.date) <= maxDate;
-
-    const distanceLimit =
-      maxDistance === "" ? Infinity : Number(maxDistance);
-
-    const distanceMatch =
-      photo.distance <= distanceLimit;
-
-    return keywordMatch && dateMinMatch && dateMaxMatch && distanceMatch;
+    return dateMatch;
   });
 
   return (
-    <View style={{padding:20}}>
+    <View style={styles.container}>
+      <Text style={styles.title}>Galerie</Text>
 
       <TextInput
-        placeholder="🔍 search city"
-        value={search}
-        onChangeText={setSearch}
-        style={{borderWidth:1,padding:8,marginBottom:10}}
-      />
-
-      <TextInput
-        placeholder="date min (YYYY-MM-DD)"
-        value={dateMin}
-        onChangeText={setDateMin}
-        style={{borderWidth:1,padding:8,marginBottom:10}}
-      />
-
-      <TextInput
-        placeholder="date max (YYYY-MM-DD)"
-        value={dateMax}
-        onChangeText={setDateMax}
-        style={{borderWidth:1,padding:8,marginBottom:10}}
-      />
-
-      <TextInput
-        placeholder="distance max (km)"
-        value={maxDistance}
-        onChangeText={setMaxDistance}
-        keyboardType="numeric"
-        style={{borderWidth:1,padding:8,marginBottom:10}}
+        placeholder="Filtrer par date (YYYY-MM-DD)"
+        value={searchDate}
+        onChangeText={setSearchDate}
+        style={styles.input}
       />
 
       <FlatList
         data={filteredPhotos}
-        keyExtractor={(item)=>item.id}
-        renderItem={({item})=>(
-          <View style={{flexDirection:"row",padding:10,borderBottomWidth:1}}>
-            <Image
-              source={{uri:item.uri}}
-              style={{width:70,height:70,marginRight:10}}
-            />
+        keyExtractor={(item, index) => item.uri || index.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Image source={{ uri: item.uri }} style={styles.image} />
 
-            <View>
-              <Text>📍 {item.city}</Text>
-              <Text>📅 {item.date}</Text>
-              <Text>📏 {item.distance} km</Text>
+            <View style={styles.info}>
+              <Text style={styles.text}>📅 {item.date?.slice(0, 10)}</Text>
+              <Text style={styles.text}>📍 Lat : {item.lat}</Text>
+              <Text style={styles.text}>📍 Lon : {item.lon}</Text>
+
+              <Button
+                title="Supprimer"
+                onPress={() => handleDeletePhoto(item.uri)}
+              />
             </View>
           </View>
         )}
+        ListEmptyComponent={
+          <Text style={styles.empty}>Aucune photo enregistrée</Text>
+        }
       />
-
     </View>
   );
-} */
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    paddingTop: 50,
+    backgroundColor: "#f5f5f5",
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 16,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    backgroundColor: "white",
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  card: {
+    flexDirection: "row",
+    backgroundColor: "white",
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 12,
+    elevation: 2,
+  },
+  image: {
+    width: 90,
+    height: 90,
+    marginRight: 12,
+    borderRadius: 8,
+  },
+  info: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  text: {
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  empty: {
+    marginTop: 20,
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+  },
+});

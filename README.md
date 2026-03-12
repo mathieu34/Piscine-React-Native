@@ -1,50 +1,113 @@
-# Welcome to your Expo app 👋
+# Journal de Voyage Interactif
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Application mobile React Native / Expo permettant de photographier des lieux, les géolocaliser et les visualiser sur une carte interactive avec un calendrier de navigation.
 
-## Get started
+---
 
-1. Install dependencies
+## 1. Pitch & User Stories
 
-   ```bash
-   npm install
-   ```
+**Objectif** : Garder une trace visuelle et géographique de ses voyages directement depuis son smartphone.
 
-2. Start the app
+| # | En tant que… | Je veux… | Afin de… |
+|---|---|---|---|
+| 1 | Voyageur | Prendre une photo depuis l'app | Capturer un moment avec sa position GPS |
+| 2 | Voyageur | Voir mes photos sur une carte | Visualiser où j'ai été |
+| 3 | Voyageur | Filtrer mes photos par date | Retrouver facilement un souvenir |
+| 4 | Voyageur | Consulter mon profil et mes stats | Suivre mon activité de voyage |
+| 5 | Voyageur | Supprimer une photo | Gérer ma galerie |
 
-   ```bash
-   npx expo start
-   ```
+---
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## 2. Installation & Run
 
 ```bash
-npm run reset-project
+# Cloner le dépôt
+git clone <url-du-repo>
+cd Ipssi_ExpoApp
+
+# Installer les dépendances
+npm install
+
+# Lancer en développement
+npx expo start --clear
+
+# Scanner le QR code avec Expo Go (iOS/Android)
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+## 3. Architecture
 
-To learn more about developing your project with Expo, look at the following resources:
+### Schéma Navigation
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```
+Drawer (app/_layout)
+├── (tabs)
+│   ├── index          → Accueil (caché de la tab bar)
+│   ├── camera         → Caméra
+│   ├── map            → Carte
+│   ├── calendar       → Calendrier
+│   ├── photos/
+│   │   ├── _layout    → Stack
+│   │   ├── index      → Galerie photos
+│   │   └── detail     → Détail photo (à venir)
+│   └── profile        → Profil & Stats
+├── profile            → Profil (drawer)
+└── logout             → Déconnexion (drawer)
+```
 
-## Join the community
+### Schéma Services & Dataflow
 
-Join our community of developers creating universal apps.
+```
+UI (Screens)
+ │
+ ├── photoservices.js
+ │    ├── getAllPhotos()     ──► AsyncStorage ──► Photo[]
+ │    ├── savePhoto(photo)   ──► AsyncStorage
+ │    ├── deletePhoto(uri)   ──► AsyncStorage
+ │    └── filterPhotos()     ──► AsyncStorage ──► Photo[]
+ │
+ ├── locationservices.js
+ │    ├── requestLocationPermission()
+ │    └── getCurrentLocation() ──► { lat, lon }
+ │
+ └── statsServices.js
+      ├── getTotalPhotos(photos)   ──► number
+      ├── getMostActiveDay(photos) ──► { day, count }
+      └── getStats(photos)         ──► { totalPhotos, mostActiveDay }
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Offline : toutes les données sont stockées localement (AsyncStorage).
+Aucune connexion réseau requise après installation.
+```
+---
+
+## 4. Fonctionnalités livrées
+
+- [x] Caméra — capture photo avec prévisualisation et confirmation
+- [x] Géolocalisation — position GPS récupérée à la sauvegarde
+- [x] Stockage local — AsyncStorage via `photoservices`
+- [x] Suppression de photo — depuis la galerie
+- [x] Carte — marqueurs pour chaque photo sauvegardée
+- [x] Carte — centrage automatique sur position GPS actuelle
+- [x] Carte — modal au tap sur un marqueur (aperçu + date + coordonnées)
+- [x] Carte — rechargement automatique à chaque visite (`useFocusEffect`)
+- [x] Galerie — FlatList triée par date décroissante
+- [x] Galerie — filtre par date
+- [x] Profil — statistiques (nb photos, jour le plus actif)
+- [x] Navigation — Tabs + Drawer + Stack
+- [x] Calendrier — jours marqués + filtrage 
+
+---
+
+## 5. Répartition des tâches
+
+Caméra (capture, preview, save) :  Mathieu 
+Géolocalisation & locationService : Mathieu 
+Services (locations, photo, stats)  : Amos 
+Carte (MapView, marqueurs, modal) : Mathieu 
+Galerie photos (FlatList, filtres) : Mathieu 
+Profil & Stats : Amos
+Calendrier : Amos 
+Navigation (Drawer + Tabs + Stack) : Bathy(react native) / Mathieu(expo) 
+
+
