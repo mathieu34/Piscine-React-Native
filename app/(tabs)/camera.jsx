@@ -42,9 +42,12 @@ export default function App() {
 
   const handleSavePhoto = async () => { // sauvegarde photo + métadonnées
 
-     if (!locationPermission?.granted) {
-    await requestLocationPermission();
-  }
+    const { status } = await Location.requestForegroundPermissionsAsync();
+
+    if (status !== "granted") {
+      console.log("Permission localisation refusée");
+      return;
+    }
 
     const location = await Location.getCurrentPositionAsync({});   // récupération GPS
 
