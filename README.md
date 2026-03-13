@@ -101,13 +101,7 @@ Aucune connexion réseau requise après installation.
 
 ## 5. Répartition des tâches
 
-Caméra (capture, preview, save) :  Mathieu 
-Géolocalisation & locationService : Mathieu 
-Services (locations, photo, stats)  : Amos 
-Carte (MapView, marqueurs, modal) : Mathieu 
-Galerie photos (FlatList, filtres) : Mathieu 
-Profil & Stats : Amos
-Calendrier : Amos 
-Navigation (Drawer + Tabs + Stack) : Bathy(react native) / Mathieu(expo) 
-
+Mathieu : Caméra (capture, preview, save), Carte (MapView, marqueurs, modal), Galerie photos (FlatList, filtres complets sur branche perso), Navigation Expo (Drawer + Tabs + Stack)
+Amos : Services (locations, photo, stats), Profil & Stats, Calendrier
+Bathy : Navigation react native (Drawer + Tabs + Stack)
 
